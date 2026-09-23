@@ -2,6 +2,7 @@ import asyncio
 import os
 import json
 from dotenv import load_dotenv
+import traceback
 
 from maxbot.bot import Bot
 from maxbot.dispatcher import Dispatcher
@@ -32,68 +33,70 @@ async def setup_kafka_producer():
     await producer.start()
     print("✅ Kafka Producer успешно запущен")
 
+import traceback # Добавь этот импорт в самое начало файла, если его нет
+
 async def kafka_consumer_worker():
-    # Настраиваем Consumer
     consumer = AIOKafkaConsumer(
         KAFKA_TOPIC,
         bootstrap_servers=KAFKA_BOOTSTRAP_SERVERS,
         group_id="max-bot-consumer-group",
         value_deserializer=lambda x: json.loads(x.decode('utf-8')),
-        auto_offset_reset="latest" # Читаем только новые сообщения
+        auto_offset_reset="latest"
     )
     await consumer.start()
     print("✅ Kafka Consumer запущен, ожидаем ответы от ML-сервиса (explanation.ready)...")
     
     try:
-        # Бесконечный цикл прослушивания топика
         async for msg in consumer:
             event = msg.value
-            event_type = event.get("event_type")
-            
-            # Строго по контракту фильтруем только готовые объяснения
-            if event_type == "explanation.ready":
+            if event.get("event_type") == "explanation.ready":
                 payload = event.get("payload", {})
                 user_id = payload.get("max_user_id")
                 answer_text = payload.get("text", "Ошибка: Пустой ответ от ML")
                 
                 if user_id:
                     print(f"📥 Пойман ответ для пользователя {user_id}: {answer_text}")
-                    # Отправляем сгенерированный текст обратно в мессенджер MAX
-                    await bot.send_message(chat_id=int(user_id), text=answer_text)
-                    
+                    try:
+                        # Строго передаем именованные аргументы chat_id и text
+                        await bot.send_message(chat_id=int(user_id), text=answer_text)
+                        print("✅ Ответ от ML успешно отправлен в мессенджер!")
+                    except Exception as e:
+                        print(f"❌ Ошибка отправки из Consumer: {e}")
+                        traceback.print_exc()
     except Exception as e:
-        print(f"❌ Ошибка в работе Consumer: {e}")
+        print(f"❌ Критическая ошибка Consumer: {e}")
     finally:
         await consumer.stop()
-
+        
 @dp.message()
 async def echo_handler(message: Message):
-    user_id = message.from_user.id if hasattr(message, 'from_user') else message.chat.id
-    text = message.text
-    
-    print(f"📩 Получено сообщение от {user_id}: {text}")
-    
-    # Формируем событие для отправки
-    event = EventEnvelope(
-        event_type="bot.command.received",
-        payload={
-            "max_user_id": str(user_id),
-            "text": text,
-            "command": text
-        }
-    )
-    
-    # Отправляем в Kafka
-    if producer:
-        await producer.send_and_wait(KAFKA_TOPIC, event.model_dump())
-        print(f"📤 Событие отправлено в Kafka: {event.event_id}")
-    
-    # Уведомляем пользователя
-    response_text = "Принял запрос! Передаю агентам ML для генерации ответа... 🧠"
-    if hasattr(message, 'answer'):
-        await message.answer(response_text)
-    else:
-        await bot.send_message(chat_id=user_id, text=response_text)
+    try:
+        user_id = message.from_user.id if hasattr(message, 'from_user') else message.chat.id
+        text = message.text
+        
+        print(f"📩 Получено сообщение от {user_id}: {text}")
+        
+        event = EventEnvelope(
+            event_type="bot.command.received",
+            payload={
+                "max_user_id": str(user_id),
+                "text": text,
+                "command": text
+            }
+        )
+        
+        if producer:
+            await producer.send_and_wait(KAFKA_TOPIC, event.model_dump())
+            print(f"📤 Событие отправлено в Kafka: {event.event_id}")
+        
+        response_text = "Принял запрос! Передаю агентам ML для генерации ответа... 🧠"
+        
+        # Используем рабочий метод бота с явными именованными аргументами
+        await bot.send_message(chat_id=int(user_id), text=response_text)
+        
+    except Exception as e:
+        print(f"❌ Ошибка в echo_handler: {e}")
+        traceback.print_exc()
 
 async def main():
     print("Запуск бота и подключение к Kafka...")
