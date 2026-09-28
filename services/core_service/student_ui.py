@@ -13,7 +13,7 @@ def render_student_portal() -> str:
             --bg-base: #0b0f19;
             --bg-card: rgba(30, 41, 59, 0.7);
             --bg-card-hover: rgba(30, 41, 59, 0.9);
-            --bg-input: rgba(15, 23, 42, 0.8);
+            --bg-input: rgba(15, 23, 42, 0.85);
             --border-color: rgba(255, 255, 255, 0.08);
             --border-glow: rgba(99, 102, 241, 0.3);
             --primary: #6366f1;
@@ -30,6 +30,17 @@ def render_student_portal() -> str:
             --radius-sm: 8px;
         }
 
+        [data-theme="light"] {
+            --bg-base: #f1f5f9;
+            --bg-card: rgba(255, 255, 255, 0.92);
+            --bg-card-hover: #ffffff;
+            --bg-input: #ffffff;
+            --border-color: rgba(0, 0, 0, 0.1);
+            --border-glow: rgba(99, 102, 241, 0.2);
+            --text-main: #0f172a;
+            --text-muted: #64748b;
+        }
+
         * {
             box-sizing: border-box;
             margin: 0;
@@ -42,12 +53,20 @@ def render_student_portal() -> str:
             background-image: 
                 radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.15) 0px, transparent 50%),
                 radial-gradient(at 100% 0%, rgba(6, 182, 212, 0.12) 0px, transparent 50%),
-                radial-gradient(at 50% 100%, rgba(16, 185, 129, 0.1) 0px, transparent 50%);
+                radial-gradient(at 50% 100%, rgba(16, 185, 129, 0.08) 0px, transparent 50%);
             background-attachment: fixed;
             color: var(--text-main);
             min-height: 100vh;
+            min-width: 320px;
             display: flex;
             flex-direction: column;
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+
+        [data-theme="light"] body {
+            background-image: 
+                radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.08) 0px, transparent 50%),
+                radial-gradient(at 100% 0%, rgba(6, 182, 212, 0.06) 0px, transparent 50%);
         }
 
         /* Header */
@@ -59,6 +78,10 @@ def render_student_portal() -> str:
             top: 0;
             z-index: 100;
             padding: 14px 24px;
+        }
+
+        [data-theme="light"] header {
+            background: rgba(255, 255, 255, 0.88);
         }
 
         .header-inner {
@@ -99,6 +122,12 @@ def render_student_portal() -> str:
             -webkit-text-fill-color: transparent;
         }
 
+        [data-theme="light"] .brand-text h1 {
+            background: linear-gradient(to right, #0f172a, #475569);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
         .brand-text span {
             font-size: 12px;
             color: var(--secondary);
@@ -113,6 +142,10 @@ def render_student_portal() -> str:
             padding: 4px;
             border-radius: 30px;
             border: 1px solid var(--border-color);
+        }
+
+        [data-theme="light"] .nav-links {
+            background: rgba(226, 232, 240, 0.8);
         }
 
         .nav-btn {
@@ -136,7 +169,27 @@ def render_student_portal() -> str:
         .header-actions {
             display: flex;
             align-items: center;
-            gap: 16px;
+            gap: 12px;
+        }
+
+        .btn-theme {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border-color);
+            color: var(--text-main);
+            padding: 8px 14px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.2s;
+        }
+
+        .btn-theme:hover {
+            background: rgba(99, 102, 241, 0.15);
+            border-color: var(--primary);
         }
 
         .status-badge {
@@ -168,6 +221,7 @@ def render_student_portal() -> str:
             font-size: 13px;
             text-decoration: none;
             transition: all 0.2s;
+            font-weight: 500;
         }
 
         .btn-teacher:hover {
@@ -210,7 +264,8 @@ def render_student_portal() -> str:
             padding: 20px;
             display: flex;
             flex-direction: column;
-            gap: 20px;
+            gap: 16px;
+            overflow-y: auto;
         }
 
         .sidebar-title {
@@ -225,7 +280,7 @@ def render_student_portal() -> str:
         .form-group {
             display: flex;
             flex-direction: column;
-            gap: 8px;
+            gap: 6px;
         }
 
         .form-label {
@@ -237,7 +292,7 @@ def render_student_portal() -> str:
         .form-control {
             background: var(--bg-input);
             border: 1px solid var(--border-color);
-            color: #fff;
+            color: var(--text-main);
             padding: 10px 14px;
             border-radius: var(--radius-sm);
             font-size: 14px;
@@ -258,13 +313,14 @@ def render_student_portal() -> str:
         .hobby-card {
             background: var(--bg-input);
             border: 1px solid var(--border-color);
-            padding: 10px;
+            padding: 9px;
             border-radius: var(--radius-sm);
             text-align: center;
             font-size: 13px;
             cursor: pointer;
             transition: all 0.2s;
             user-select: none;
+            color: var(--text-main);
         }
 
         .hobby-card:hover {
@@ -275,7 +331,7 @@ def render_student_portal() -> str:
         .hobby-card.selected {
             background: rgba(99, 102, 241, 0.2);
             border-color: var(--primary);
-            color: #fff;
+            color: var(--primary-light);
             font-weight: 600;
             box-shadow: 0 0 12px var(--primary-glow);
         }
@@ -283,7 +339,7 @@ def render_student_portal() -> str:
         .chip-list {
             display: flex;
             flex-direction: column;
-            gap: 8px;
+            gap: 6px;
         }
 
         .chip-item {
@@ -298,11 +354,34 @@ def render_student_portal() -> str:
             text-align: left;
         }
 
+        [data-theme="light"] .chip-item {
+            background: rgba(0, 0, 0, 0.03);
+        }
+
         .chip-item:hover {
             background: rgba(99, 102, 241, 0.1);
             border-color: var(--primary);
             color: var(--text-main);
             transform: translateX(3px);
+        }
+
+        .btn-clear-chat {
+            background: transparent;
+            border: 1px dashed var(--border-color);
+            color: var(--text-muted);
+            padding: 8px;
+            border-radius: var(--radius-sm);
+            font-size: 12px;
+            cursor: pointer;
+            width: 100%;
+            transition: all 0.2s;
+            margin-top: 4px;
+        }
+
+        .btn-clear-chat:hover {
+            border-color: var(--danger);
+            color: #fca5a5;
+            background: rgba(239, 68, 68, 0.08);
         }
 
         /* Chat Main Box */
@@ -326,7 +405,7 @@ def render_student_portal() -> str:
         }
 
         .message-bubble {
-            max-width: 82%;
+            max-width: 84%;
             display: flex;
             flex-direction: column;
             gap: 8px;
@@ -369,6 +448,11 @@ def render_student_portal() -> str:
             box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
         }
 
+        [data-theme="light"] .message-bot .message-content {
+            background: #ffffff;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
+        }
+
         .badges-bar {
             display: flex;
             flex-wrap: wrap;
@@ -387,6 +471,20 @@ def render_student_portal() -> str:
             background: rgba(99, 102, 241, 0.2);
             color: #a5b4fc;
             border: 1px solid rgba(99, 102, 241, 0.3);
+        }
+
+        .badge-llm {
+            background: rgba(168, 85, 247, 0.2);
+            color: #d8b4fe;
+            border: 1px solid rgba(168, 85, 247, 0.4);
+            font-weight: 700;
+        }
+
+        .badge-fallback {
+            background: rgba(59, 130, 246, 0.2);
+            color: #93c5fd;
+            border: 1px solid rgba(59, 130, 246, 0.4);
+            font-weight: 700;
         }
 
         .badge-rag-active {
@@ -408,6 +506,40 @@ def render_student_portal() -> str:
             border: 1px solid rgba(16, 185, 129, 0.3);
         }
 
+        .badge-pulsing {
+            animation: pulseRAG 1.4s infinite;
+        }
+
+        @keyframes pulseRAG {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.6; transform: scale(0.98); }
+        }
+
+        /* Typing Dots Animation */
+        .typing-indicator {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 4px 8px;
+        }
+
+        .typing-indicator span {
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            background: var(--primary-light);
+            display: inline-block;
+            animation: bounceDots 1.4s infinite ease-in-out both;
+        }
+
+        .typing-indicator span:nth-child(1) { animation-delay: -0.32s; }
+        .typing-indicator span:nth-child(2) { animation-delay: -0.16s; }
+
+        @keyframes bounceDots {
+            0%, 80%, 100% { transform: scale(0.2); opacity: 0.3; }
+            40% { transform: scale(1); opacity: 1; }
+        }
+
         /* RAG Sources Accordion */
         .rag-sources-accordion {
             margin-top: 14px;
@@ -418,16 +550,16 @@ def render_student_portal() -> str:
             font-size: 13px;
         }
 
+        [data-theme="light"] .rag-sources-accordion {
+            background: rgba(241, 245, 249, 0.8);
+        }
+
         .rag-sources-accordion summary {
             cursor: pointer;
             color: #6ee7b7;
             font-weight: 600;
             user-select: none;
             outline: none;
-        }
-
-        .rag-sources-accordion summary:hover {
-            color: #34d399;
         }
 
         .rag-sources-body {
@@ -446,6 +578,10 @@ def render_student_portal() -> str:
             border-radius: 4px;
         }
 
+        [data-theme="light"] .rag-chunk-item {
+            background: #ffffff;
+        }
+
         .rag-chunk-tag {
             font-size: 11px;
             font-weight: 700;
@@ -458,32 +594,42 @@ def render_student_portal() -> str:
 
         .rag-chunk-item p {
             font-size: 12px;
-            color: #cbd5e1;
+            color: var(--text-muted);
             line-height: 1.5;
             margin: 0;
             white-space: pre-wrap;
         }
 
-        /* Formula & code style inside messages */
         .formula-box {
             background: rgba(0, 0, 0, 0.4);
             border: 1px solid rgba(255, 255, 255, 0.1);
-            padding: 6px 12px;
-            border-radius: 8px;
+            padding: 4px 10px;
+            border-radius: 6px;
             font-family: 'JetBrains Mono', monospace;
             font-size: 14px;
             color: #38bdf8;
-            margin: 6px 0;
+            margin: 4px 0;
             display: inline-block;
         }
 
-        /* Quiz Card inside message */
+        [data-theme="light"] .formula-box {
+            background: #e2e8f0;
+            border-color: rgba(0, 0, 0, 0.1);
+            color: #0369a1;
+        }
+
+        /* Quiz Card */
         .quiz-card {
             background: rgba(30, 41, 59, 0.8);
             border: 1px solid var(--border-glow);
             border-radius: var(--radius-md);
             padding: 16px;
             margin-top: 16px;
+        }
+
+        [data-theme="light"] .quiz-card {
+            background: #f8fafc;
+            border-color: rgba(99, 102, 241, 0.3);
         }
 
         .quiz-title {
@@ -498,7 +644,7 @@ def render_student_portal() -> str:
 
         .quiz-question {
             font-size: 14px;
-            color: #fff;
+            color: var(--text-main);
             margin-bottom: 12px;
             font-weight: 500;
         }
@@ -521,6 +667,10 @@ def render_student_portal() -> str:
             transition: all 0.2s;
         }
 
+        [data-theme="light"] .quiz-opt-btn {
+            background: #ffffff;
+        }
+
         .quiz-opt-btn:hover {
             border-color: var(--primary);
             background: rgba(99, 102, 241, 0.15);
@@ -529,13 +679,13 @@ def render_student_portal() -> str:
         .quiz-opt-btn.correct {
             background: rgba(16, 185, 129, 0.25) !important;
             border-color: #10b981 !important;
-            color: #6ee7b7 !important;
+            color: #34d399 !important;
         }
 
         .quiz-opt-btn.wrong {
             background: rgba(239, 68, 68, 0.25) !important;
             border-color: #ef4444 !important;
-            color: #fca5a5 !important;
+            color: #f87171 !important;
         }
 
         .quiz-feedback {
@@ -554,16 +704,24 @@ def render_student_portal() -> str:
             gap: 12px;
         }
 
+        [data-theme="light"] .chat-input-bar {
+            background: #f8fafc;
+        }
+
         .chat-input {
             flex: 1;
             background: rgba(30, 41, 59, 0.6);
             border: 1px solid var(--border-color);
-            color: #fff;
+            color: var(--text-main);
             padding: 12px 18px;
             border-radius: 24px;
             font-size: 15px;
             outline: none;
             transition: all 0.2s;
+        }
+
+        [data-theme="light"] .chat-input {
+            background: #ffffff;
         }
 
         .chat-input:focus {
@@ -584,6 +742,7 @@ def render_student_portal() -> str:
             cursor: pointer;
             transition: all 0.2s;
             box-shadow: 0 4px 14px var(--primary-glow);
+            font-size: 16px;
         }
 
         .btn-send:hover {
@@ -618,7 +777,7 @@ def render_student_portal() -> str:
         .card-header h2 {
             font-size: 18px;
             font-weight: 700;
-            color: #fff;
+            color: var(--text-main);
             margin-bottom: 6px;
         }
 
@@ -630,12 +789,16 @@ def render_student_portal() -> str:
         .dropzone {
             border: 2px dashed rgba(99, 102, 241, 0.4);
             border-radius: var(--radius-md);
-            padding: 40px 20px;
+            padding: 36px 20px;
             text-align: center;
             background: rgba(15, 23, 42, 0.4);
             cursor: pointer;
             transition: all 0.2s;
-            margin-bottom: 20px;
+            margin-bottom: 16px;
+        }
+
+        [data-theme="light"] .dropzone {
+            background: #ffffff;
         }
 
         .dropzone:hover, .dropzone.dragover {
@@ -644,15 +807,15 @@ def render_student_portal() -> str:
         }
 
         .dropzone-icon {
-            font-size: 40px;
-            margin-bottom: 12px;
+            font-size: 38px;
+            margin-bottom: 10px;
             color: var(--primary-light);
         }
 
         .dropzone-text {
             font-size: 15px;
             font-weight: 500;
-            color: #fff;
+            color: var(--text-main);
             margin-bottom: 4px;
         }
 
@@ -686,6 +849,31 @@ def render_student_portal() -> str:
             transform: none;
         }
 
+        /* Upload Progress Bar */
+        .upload-progress-wrap {
+            margin-top: 14px;
+            background: rgba(15, 23, 42, 0.6);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-sm);
+            padding: 12px;
+        }
+
+        .progress-bar-outer {
+            height: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 4px;
+            overflow: hidden;
+            margin-top: 6px;
+        }
+
+        .progress-bar-inner {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
+            border-radius: 4px;
+            transition: width 0.3s ease;
+        }
+
         /* Books Table */
         .table-responsive {
             overflow-x: auto;
@@ -694,21 +882,56 @@ def render_student_portal() -> str:
         table {
             width: 100%;
             border-collapse: collapse;
-            font-size: 14px;
+            font-size: 13px;
         }
 
         th {
             text-align: left;
-            padding: 12px 14px;
+            padding: 10px 12px;
             color: var(--text-muted);
             border-bottom: 1px solid var(--border-color);
             font-weight: 600;
         }
 
         td {
-            padding: 14px;
+            padding: 12px;
             border-bottom: 1px solid rgba(255, 255, 255, 0.05);
             color: var(--text-main);
+        }
+
+        [data-theme="light"] td {
+            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+        }
+
+        .btn-tbl-action {
+            padding: 5px 9px;
+            font-size: 11px;
+            border-radius: 6px;
+            border: none;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.2s;
+            margin-right: 4px;
+        }
+
+        .btn-reindex {
+            background: rgba(59, 130, 246, 0.2);
+            color: #93c5fd;
+            border: 1px solid rgba(59, 130, 246, 0.4);
+        }
+
+        .btn-reindex:hover {
+            background: rgba(59, 130, 246, 0.4);
+        }
+
+        .btn-delete-book {
+            background: rgba(239, 68, 68, 0.2);
+            color: #fca5a5;
+            border: 1px solid rgba(239, 68, 68, 0.4);
+        }
+
+        .btn-delete-book:hover {
+            background: rgba(239, 68, 68, 0.4);
         }
 
         /* Bot Tab */
@@ -762,6 +985,10 @@ def render_student_portal() -> str:
             margin-top: 24px;
         }
 
+        [data-theme="light"] .steps-box {
+            background: #ffffff;
+        }
+
         .step-item {
             display: flex;
             align-items: flex-start;
@@ -789,16 +1016,47 @@ def render_student_portal() -> str:
             flex-shrink: 0;
         }
 
+        /* Mobile Responsiveness (min-width: 320px) */
         @media (max-width: 900px) {
             .chat-container {
-                grid-template-columns: 1fr;
+                display: flex;
+                flex-direction: column;
                 height: auto;
+                min-height: calc(100vh - 120px);
             }
             .chat-sidebar {
                 order: 2;
+                max-height: 400px;
             }
             .upload-layout {
                 grid-template-columns: 1fr;
+            }
+            header {
+                padding: 12px 16px;
+            }
+            .header-inner {
+                flex-wrap: wrap;
+            }
+        }
+
+        @media (max-width: 520px) {
+            main {
+                padding: 0 12px;
+            }
+            .message-bubble {
+                max-width: 96%;
+            }
+            .nav-links {
+                width: 100%;
+                justify-content: space-around;
+            }
+            .nav-btn {
+                padding: 6px 10px;
+                font-size: 12px;
+            }
+            .header-actions {
+                width: 100%;
+                justify-content: space-between;
             }
         }
     </style>
@@ -822,6 +1080,9 @@ def render_student_portal() -> str:
             </div>
 
             <div class="header-actions">
+                <button id="themeToggle" class="btn-theme" onclick="toggleTheme()" title="Переключить тему оформления">
+                    <span id="themeIcon">🌙</span> <span id="themeLabel">Тёмная</span>
+                </button>
                 <div class="status-badge">
                     <div class="status-pulse"></div>
                     <span>Онлайн (Tailscale)</span>
@@ -870,12 +1131,16 @@ def render_student_portal() -> str:
                     <div class="form-group">
                         <label class="form-label">Быстрые вопросы для демо:</label>
                         <div class="chip-list">
-                            <button class="chip-item" onclick="askPreset('Объясни теорему Пифагора')">📐 Теорема Пифагора</button>
-                            <button class="chip-item" onclick="askPreset('Объясни квадратные уравнения')">⚡ Квадратные уравнения</button>
+                            <button class="chip-item" onclick="askPreset('Объясни квадратные уравнения')">📐 Квадратные уравнения</button>
                             <button class="chip-item" onclick="askPreset('Что такое Закон Ома?')">🔌 Закон Ома</button>
+                            <button class="chip-item" onclick="askPreset('Объясни теорему Пифагора')">🔺 Теорема Пифагора</button>
+                            <button class="chip-item" onclick="askPreset('Как устроен фотосинтез?')">🌿 Фотосинтез</button>
                             <button class="chip-item" onclick="askPreset('Как работает сила гравитации?')">🪐 Гравитация</button>
+                            <button class="chip-item" onclick="askPreset('Объясни алгоритм сортировки')">💻 Алгоритм сортировки</button>
                         </div>
                     </div>
+
+                    <button class="btn-clear-chat" onclick="clearChatHistory()">🗑️ Очистить историю диалога</button>
                 </div>
 
                 <!-- Chat Box -->
@@ -904,7 +1169,7 @@ def render_student_portal() -> str:
                 <div class="card">
                     <div class="card-header">
                         <h2>📚 Загрузка учебника в векторную базу</h2>
-                        <p>Загрузите реальный школьный учебник в формате PDF. Система автоматически извлечёт текст, разобьёт на чанки и добавит в RAG-индекс.</p>
+                        <p>Загрузите школьный учебник в формате PDF. Система автоматически извлечёт текст, разобьёт на чанки (1000/200 с защитой формул) и добавит в RAG-индекс.</p>
                     </div>
 
                     <div class="form-group" style="margin-bottom: 16px;">
@@ -920,11 +1185,22 @@ def render_student_portal() -> str:
                     <div class="dropzone" id="dropzone" onclick="document.getElementById('fileInput').click()">
                         <div class="dropzone-icon">📄</div>
                         <div class="dropzone-text" id="dropzoneText">Нажмите для выбора PDF файла или перетащите сюда</div>
-                        <div class="dropzone-sub">Поддерживаются стандартные PDF с текстовым слоем</div>
+                        <div class="dropzone-sub">Поддерживаются стандартные PDF с текстовым слоем (до 100 МБ)</div>
                         <input type="file" id="fileInput" accept=".pdf" style="display:none;" onchange="handleFileSelected(this.files)">
                     </div>
 
                     <button id="btnUpload" class="btn-primary" onclick="uploadTextbook()" disabled>Загрузить и проиндексировать в RAG</button>
+
+                    <!-- Animated Progress Bar -->
+                    <div id="uploadProgressWrap" class="upload-progress-wrap" style="display:none;">
+                        <div style="display:flex; justify-content:space-between; font-size:12px; color:var(--text-muted);">
+                            <span id="uploadProgressText">Загрузка файла и чанкинг...</span>
+                            <span id="uploadProgressPct" style="font-weight:700; color:#38bdf8;">0%</span>
+                        </div>
+                        <div class="progress-bar-outer">
+                            <div id="uploadProgressBar" class="progress-bar-inner"></div>
+                        </div>
+                    </div>
 
                     <div id="uploadStatus" style="margin-top: 16px; display: none;"></div>
                 </div>
@@ -932,7 +1208,7 @@ def render_student_portal() -> str:
                 <div class="card">
                     <div class="card-header">
                         <h2>📖 Активные учебники в RAG</h2>
-                        <p>Список проиндексированных пособий, по которым ИИ-репетитор проверяет факты и генерирует формулы.</p>
+                        <p>Список проиндексированных пособий. Система проверяет факты и выдает цитаты с номерами страниц.</p>
                     </div>
 
                     <div class="table-responsive">
@@ -941,12 +1217,13 @@ def render_student_portal() -> str:
                                 <tr>
                                     <th>Предмет</th>
                                     <th>Файл / Источник</th>
-                                    <th>Чанков в базе</th>
-                                    <th>Статус</th>
+                                    <th>Размер & Дата</th>
+                                    <th>Чанков</th>
+                                    <th>Действия</th>
                                 </tr>
                             </thead>
                             <tbody id="textbooksTableBody">
-                                <tr><td colspan="4" style="text-align:center; color:var(--text-muted);">Загрузка списка учебников...</td></tr>
+                                <tr><td colspan="5" style="text-align:center; color:var(--text-muted);">Загрузка списка учебников...</td></tr>
                             </tbody>
                         </table>
                     </div>
@@ -969,7 +1246,7 @@ def render_student_portal() -> str:
                 </a>
 
                 <div class="steps-box">
-                    <h3 style="font-size: 15px; margin-bottom: 14px; color: #fff;">📱 5 простых шагов для теста в мессенджере:</h3>
+                    <h3 style="font-size: 15px; margin-bottom: 14px; color: var(--text-main);">📱 5 простых шагов для теста в мессенджере:</h3>
                     <div class="step-item">
                         <div class="step-num">1</div>
                         <div>Откройте приложение MAX на телефоне или ПК и найдите бота <code>@t569_hakaton_max_bot</code>.</div>
@@ -998,6 +1275,28 @@ def render_student_portal() -> str:
     <script>
         let currentHobby = 'Футбол';
         let selectedFile = null;
+        let waitNoticeTimer = null;
+
+        // Theme Toggle
+        function applyTheme(theme) {
+            document.documentElement.setAttribute('data-theme', theme);
+            const icon = document.getElementById('themeIcon');
+            const label = document.getElementById('themeLabel');
+            if (theme === 'light') {
+                if (icon) icon.innerText = '☀️';
+                if (label) label.innerText = 'Светлая';
+            } else {
+                if (icon) icon.innerText = '🌙';
+                if (label) label.innerText = 'Тёмная';
+            }
+            localStorage.setItem('student_theme', theme);
+        }
+
+        function toggleTheme() {
+            const current = document.documentElement.getAttribute('data-theme') || 'dark';
+            const next = current === 'light' ? 'dark' : 'light';
+            applyTheme(next);
+        }
 
         function switchTab(tabName) {
             document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
@@ -1027,6 +1326,18 @@ def render_student_portal() -> str:
             sendMessage();
         }
 
+        function clearChatHistory() {
+            const container = document.getElementById('chatMessages');
+            container.innerHTML = `
+                <div class="message-bubble message-bot">
+                    <div class="message-header">🤖 Абстрактный Репетитор</div>
+                    <div class="message-content">
+                        История диалога очищена. Задай мне новый школьный вопрос или выбери тему слева!
+                    </div>
+                </div>
+            `;
+        }
+
         async function sendMessage() {
             const input = document.getElementById('userInput');
             const query = input.value.trim();
@@ -1044,18 +1355,39 @@ def render_student_portal() -> str:
             input.value = '';
             messagesContainer.scrollTop = messagesContainer.scrollHeight;
 
-            // 2. Append Loading Placeholder
+            // 2. Append Loading Placeholder with 3-dot animation
             const loadingMsg = document.createElement('div');
             loadingMsg.className = 'message-bubble message-bot';
             loadingMsg.id = 'loadingBubble';
             loadingMsg.innerHTML = `
                 <div class="message-header">🤖 Репетитор подбирает аналогию...</div>
-                <div class="message-content" style="color:var(--text-muted);">
-                    ⚡ Поиск в RAG и генерация метафоры через ${currentHobby}...
+                <div class="message-content" id="loadingContent">
+                    <div class="badges-bar">
+                        <span class="badge badge-rag-active badge-pulsing">🔵 ⚡ RAG поиск по учебникам...</span>
+                    </div>
+                    <div style="display:flex; align-items:center; gap:8px; color:var(--text-muted); font-size:14px;">
+                        <span>Генерация метафоры через «${escapeHtml(currentHobby)}»</span>
+                        <div class="typing-indicator"><span></span><span></span><span></span></div>
+                    </div>
                 </div>
             `;
             messagesContainer.appendChild(loadingMsg);
             messagesContainer.scrollTop = messagesContainer.scrollHeight;
+
+            // 3. 15-second timeout notification
+            if (waitNoticeTimer) clearTimeout(waitNoticeTimer);
+            waitNoticeTimer = setTimeout(() => {
+                const loadingContent = document.getElementById('loadingContent');
+                if (loadingContent) {
+                    const notice = document.createElement('div');
+                    notice.id = 'timeoutNotice';
+                    notice.style.marginTop = '10px';
+                    notice.style.fontSize = '12px';
+                    notice.style.color = '#fbbf24';
+                    notice.innerHTML = '⚡ Запрос обрабатывается дольше обычного, подбираем лучшую метафору и формулу...';
+                    loadingContent.appendChild(notice);
+                }
+            }, 15000);
 
             const sendBtn = document.getElementById('sendBtn');
             sendBtn.disabled = true;
@@ -1072,6 +1404,7 @@ def render_student_portal() -> str:
                     })
                 });
 
+                if (waitNoticeTimer) clearTimeout(waitNoticeTimer);
                 const data = await resp.json();
                 const bubble = document.getElementById('loadingBubble');
                 if (bubble) bubble.remove();
@@ -1086,6 +1419,7 @@ def render_student_portal() -> str:
 
             } catch (err) {
                 console.error(err);
+                if (waitNoticeTimer) clearTimeout(waitNoticeTimer);
                 const bubble = document.getElementById('loadingBubble');
                 if (bubble) bubble.remove();
                 appendBotMessage('Произошла ошибка связи с сервером. Попробуйте еще раз.', 'Ошибка', 'badge-speed');
@@ -1100,16 +1434,24 @@ def render_student_portal() -> str:
             const botMsg = document.createElement('div');
             botMsg.className = 'message-bubble message-bot';
 
-            const sourceText = data.source ? data.source.replace('_', ' ').toUpperCase() : 'FALLBACK';
             const latency = data.latency_ms || 180;
+            const latencySec = (latency / 1000).toFixed(1);
             const ragHits = data.rag_hits || (data.rag_chunks ? data.rag_chunks.length : 0);
+
+            // Источник: LLM vs Fallback
+            let sourceBadgeHtml = '';
+            if (data.source && (data.source.includes('giga') || data.source === 'llm')) {
+                sourceBadgeHtml = '<span class="badge badge-llm">🧠 LLM (GigaChat)</span>';
+            } else {
+                sourceBadgeHtml = '<span class="badge badge-fallback">⚡ Каталог метафор (Fallback)</span>';
+            }
 
             // Бейдж RAG: зеленый если найден контекст, серый если не найден
             let ragBadgeHtml = '';
             if (ragHits > 0) {
-                ragBadgeHtml = `<span class="badge badge-rag-active" title="Извлечено ${ragHits} релевантных фрагментов из учебника">🟢 📚 RAG: ${ragHits} чанка из учебника</span>`;
+                ragBadgeHtml = `<span class="badge badge-rag-active" title="Извлечено ${ragHits} фрагментов из учебника">🟢 📚 RAG: ${ragHits} чанка</span>`;
             } else {
-                ragBadgeHtml = `<span class="badge badge-rag-idle" title="Контекст не найден в загруженных учебниках">⚪ 📚 RAG: не использован</span>`;
+                ragBadgeHtml = `<span class="badge badge-rag-idle" title="Контекст не найден в учебниках">⚪ 📚 RAG: не использован</span>`;
             }
 
             // Аккордеон с цитатами из учебника
@@ -1154,8 +1496,9 @@ def render_student_portal() -> str:
                 <div class="message-content">
                     <div class="badges-bar">
                         <span class="badge badge-hobby">🎯 Аналогия: ${escapeHtml(currentHobby)}</span>
+                        ${sourceBadgeHtml}
                         ${ragBadgeHtml}
-                        <span class="badge badge-speed">⚡ ${latency} мс (${sourceText})</span>
+                        <span class="badge badge-speed">⚡ ${latencySec} сек (${latency} мс)</span>
                     </div>
                     <div style="white-space: pre-wrap;">${formatExplanation(data.explanation)}</div>
                     ${ragDetailsHtml}
@@ -1172,7 +1515,6 @@ def render_student_portal() -> str:
             const feedback = document.getElementById(`feedback-${quizId}`);
             const studentId = document.getElementById('studentId').value || 'student_demo';
 
-            // Disable all buttons in this quiz
             card.querySelectorAll('.quiz-opt-btn').forEach(b => b.disabled = true);
 
             try {
@@ -1212,7 +1554,6 @@ def render_student_portal() -> str:
         function formatExplanation(text) {
             if (!text) return '';
             let formatted = escapeHtml(text);
-            // Replace formulas like x^2 with <code>
             formatted = formatted.replace(/([a-zA-Z0-9_]+[\^²³][a-zA-Z0-9_]*)/g, '<span class="formula-box">$1</span>');
             return formatted;
         }
@@ -1238,7 +1579,7 @@ def render_student_portal() -> str:
             container.scrollTop = container.scrollHeight;
         }
 
-        // Upload Logic
+        // Upload Logic with Progress Bar
         function handleFileSelected(files) {
             if (!files || files.length === 0) return;
             selectedFile = files[0];
@@ -1246,12 +1587,9 @@ def render_student_portal() -> str:
             document.getElementById('dropzoneText').innerHTML = `✅ <strong>Выбран файл:</strong> ${escapeHtml(selectedFile.name)} (${sizeKb} КБ)`;
             const btn = document.getElementById('btnUpload');
             btn.disabled = false;
-            btn.innerHTML = `🚀 Нажмите сюда, чтобы загрузить «${escapeHtml(selectedFile.name)}»`;
-            btn.style.boxShadow = '0 0 20px rgba(99, 102, 241, 0.8)';
-            btn.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            btn.innerHTML = `🚀 Загрузить «${escapeHtml(selectedFile.name)}»`;
         }
 
-        // Drag & Drop
         const dropzone = document.getElementById('dropzone');
         ['dragenter', 'dragover'].forEach(eventName => {
             dropzone.addEventListener(eventName, (e) => { e.preventDefault(); dropzone.classList.add('dragover'); }, false);
@@ -1270,12 +1608,32 @@ def render_student_portal() -> str:
 
             const btn = document.getElementById('btnUpload');
             const statusBox = document.getElementById('uploadStatus');
+            const progressWrap = document.getElementById('uploadProgressWrap');
+            const progressBar = document.getElementById('uploadProgressBar');
+            const progressPct = document.getElementById('uploadProgressPct');
+            const progressText = document.getElementById('uploadProgressText');
             const subject = document.getElementById('uploadSubject').value;
 
             btn.disabled = true;
             btn.innerText = '⏳ Индексация учебника...';
-            statusBox.style.display = 'block';
-            statusBox.innerHTML = '<span style="color:#67e8f9;">Обработка PDF, извлечение текстового слоя и генерация чанков...</span>';
+            statusBox.style.display = 'none';
+            progressWrap.style.display = 'block';
+
+            // Simulate progress animation
+            let progress = 10;
+            progressBar.style.width = '10%';
+            progressPct.innerText = '10%';
+            progressText.innerText = 'Чтение PDF и проверка текстового слоя...';
+
+            const progressInterval = setInterval(() => {
+                if (progress < 85) {
+                    progress += 15;
+                    progressBar.style.width = progress + '%';
+                    progressPct.innerText = progress + '%';
+                    if (progress > 40) progressText.innerText = 'Генерация чанков (1000/200) и фильтрация формул...';
+                    if (progress > 70) progressText.innerText = 'Построение BM25 индекса и расчет весов...';
+                }
+            }, 300);
 
             const formData = new FormData();
             formData.append('file', selectedFile);
@@ -1287,24 +1645,38 @@ def render_student_portal() -> str:
                     body: formData
                 });
 
+                clearInterval(progressInterval);
+                progressBar.style.width = '100%';
+                progressPct.innerText = '100%';
+                progressText.innerText = 'Готово!';
+
                 const res = await resp.json();
+                statusBox.style.display = 'block';
+
                 if (res.status === 'ok') {
+                    let warnHtml = '';
+                    if (res.warning) {
+                        warnHtml = `<div style="margin-top:8px; color:#fbbf24; font-size:13px;">⚠️ ${escapeHtml(res.warning)}</div>`;
+                    }
                     statusBox.innerHTML = `
                         <div style="background:rgba(16,185,129,0.15); border:1px solid #10b981; padding:12px; border-radius:8px; color:#6ee7b7;">
-                            ✅ ${res.message}<br>
-                            <strong>Извлечено чанков:</strong> ${res.chunks_count} | <strong>Предмет:</strong> ${res.subject}
+                            ✅ ${escapeHtml(res.message)}<br>
+                            <strong>Извлечено чанков:</strong> ${res.chunks_count} | <strong>Предмет:</strong> ${escapeHtml(res.subject)}
+                            ${warnHtml}
                         </div>
                     `;
                     loadTextbooksList();
                 } else {
                     statusBox.innerHTML = `
                         <div style="background:rgba(239,68,68,0.15); border:1px solid #ef4444; padding:12px; border-radius:8px; color:#fca5a5;">
-                            ❌ ${res.message}
+                            ❌ ${escapeHtml(res.message)}
                         </div>
                     `;
                 }
             } catch (err) {
+                clearInterval(progressInterval);
                 console.error(err);
+                statusBox.style.display = 'block';
                 statusBox.innerHTML = `
                     <div style="background:rgba(239,68,68,0.15); border:1px solid #ef4444; padding:12px; border-radius:8px; color:#fca5a5;">
                         ❌ Ошибка загрузки файла на сервер.
@@ -1313,6 +1685,45 @@ def render_student_portal() -> str:
             } finally {
                 btn.disabled = false;
                 btn.innerText = 'Загрузить и проиндексировать в RAG';
+                setTimeout(() => { progressWrap.style.display = 'none'; }, 2000);
+            }
+        }
+
+        async function reindexTextbook(subject) {
+            try {
+                const resp = await fetch('/api/student/textbook/reindex', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ subject: subject })
+                });
+                const res = await resp.json();
+                if (res.status === 'ok') {
+                    alert(`✅ ${res.message}`);
+                    loadTextbooksList();
+                } else {
+                    alert(`❌ ${res.message}`);
+                }
+            } catch (e) {
+                alert('Ошибка переиндексации: ' + e);
+            }
+        }
+
+        async function deleteTextbook(subject) {
+            if (!confirm(`Вы уверены, что хотите удалить индекс по предмету «${subject}»?`)) return;
+            try {
+                const resp = await fetch('/api/student/textbook/delete', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ subject: subject })
+                });
+                const res = await resp.json();
+                if (res.status === 'ok') {
+                    loadTextbooksList();
+                } else {
+                    alert(`❌ ${res.message}`);
+                }
+            } catch (e) {
+                alert('Ошибка удаления: ' + e);
             }
         }
 
@@ -1323,7 +1734,7 @@ def render_student_portal() -> str:
                 const data = await resp.json();
 
                 if (!data.textbooks || data.textbooks.length === 0) {
-                    tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; color:var(--text-muted);">В базе пока нет проиндексированных учебников. Загрузите первый!</td></tr>';
+                    tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; color:var(--text-muted);">В базе пока нет проиндексированных учебников. Загрузите первый!</td></tr>';
                     return;
                 }
 
@@ -1331,18 +1742,24 @@ def render_student_portal() -> str:
                     <tr>
                         <td><strong>${escapeHtml(tb.subject.toUpperCase())}</strong></td>
                         <td>${tb.sources ? tb.sources.map(s => escapeHtml(s)).join(', ') : 'Учебник'}</td>
+                        <td><span style="color:var(--text-muted); font-size:12px;">${tb.size_kb ? tb.size_kb + ' КБ · ' : ''}${tb.date || '—'}</span></td>
                         <td><span style="font-family:'JetBrains Mono',monospace; color:#38bdf8; font-weight:700;">${tb.chunks_count} чанков</span></td>
-                        <td><span style="color:#34d399; font-weight:600;">● Готов к поиску</span></td>
+                        <td>
+                            <button class="btn-tbl-action btn-reindex" onclick="reindexTextbook('${tb.subject}')" title="Переиндексировать этот предмет">🔄</button>
+                            <button class="btn-tbl-action btn-delete-book" onclick="deleteTextbook('${tb.subject}')" title="Удалить индекс">🗑️</button>
+                        </td>
                     </tr>
                 `).join('');
             } catch (e) {
                 console.error(e);
-                tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; color:var(--danger);">Не удалось загрузить список учебников.</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; color:var(--danger);">Не удалось загрузить список учебников.</td></tr>';
             }
         }
 
         // Init
         document.addEventListener('DOMContentLoaded', () => {
+            const savedTheme = localStorage.getItem('student_theme') || 'dark';
+            applyTheme(savedTheme);
             loadTextbooksList();
         });
     </script>
