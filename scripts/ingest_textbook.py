@@ -14,9 +14,7 @@ if hasattr(sys.stderr, "reconfigure"):
     sys.stderr.reconfigure(encoding="utf-8")
 
 
-def tokenize(text: str) -> List[str]:
-    """Токенизирует текст для RAG-индекса, фильтруя короткие символы."""
-    return [w for w in re.findall(r'[a-zA-Zа-яёА-ЯЁ0-9]+', text.lower()) if len(w) >= 3]
+from services.ml_service.rag_engine import _tokenize as tokenize
 
 
 def get_formula_spans(text: str) -> List[Tuple[int, int]]:
