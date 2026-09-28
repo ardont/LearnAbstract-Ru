@@ -7,7 +7,7 @@ import traceback
 from maxbot.bot import Bot
 from maxbot.dispatcher import Dispatcher
 from maxbot.types import Message
-from aiokafka import AIOKafkaProducer, AIOKafkaConsumer  # Добавили Consumer
+from aiokafka import AIOKafkaProducer, AIOKafkaConsumer
 
 from schemas.events import EventEnvelope
 
@@ -20,9 +20,39 @@ KAFKA_TOPIC = os.getenv("KAFKA_TOPIC_EVENTS", "education.events")
 bot = Bot(token=TOKEN)
 dp = Dispatcher(bot)
 
-# Глобальные переменные для Kafka
+# Глобальные переменные для Kafka и очереди
 producer = None
 consumer_task = None
+message_queue = asyncio.Queue() # Очередь для исходящих сообщений
+sender_task = None # Фоновая задача для отправки
+
+async def message_sender_worker():
+    """
+    Фоновый воркер (Throttling).
+    Соблюдает лимит MAX API: 30 запросов/сек.
+    """
+    print("✅ Воркер отправки сообщений запущен (лимит 30 req/sec)")
+    while True:
+        try:
+            # Ждем появления задачи в очереди
+            chat_id, text = await message_queue.get()
+            
+            try:
+                # Фактическая отправка
+                await bot.send_message(chat_id=int(chat_id), text=text)
+            except Exception as e:
+                print(f"❌ Ошибка при отправке сообщения пользователю {chat_id}: {e}")
+            
+            # Строгий throttling: пауза 1/30 секунды (~0.033 сек) перед следующим сообщением
+            await asyncio.sleep(1 / 30)
+            
+            # Отмечаем задачу как выполненную
+            message_queue.task_done()
+            
+        except asyncio.CancelledError:
+            break
+        except Exception as e:
+            print(f"❌ Критическая ошибка в воркере отправки: {e}")
 
 async def setup_kafka_producer():
     global producer
@@ -32,8 +62,6 @@ async def setup_kafka_producer():
     )
     await producer.start()
     print("✅ Kafka Producer успешно запущен")
-
-import traceback # Добавь этот импорт в самое начало файла, если его нет
 
 async def kafka_consumer_worker():
     consumer = AIOKafkaConsumer(
@@ -55,14 +83,10 @@ async def kafka_consumer_worker():
                 answer_text = payload.get("text", "Ошибка: Пустой ответ от ML")
                 
                 if user_id:
-                    print(f"📥 Пойман ответ для пользователя {user_id}: {answer_text}")
-                    try:
-                        # Строго передаем именованные аргументы chat_id и text
-                        await bot.send_message(chat_id=int(user_id), text=answer_text)
-                        print("✅ Ответ от ML успешно отправлен в мессенджер!")
-                    except Exception as e:
-                        print(f"❌ Ошибка отправки из Consumer: {e}")
-                        traceback.print_exc()
+                    print(f"📥 Пойман ответ для пользователя {user_id}. Кладу в очередь на отправку...")
+                    # Вместо прямой отправки кладем в очередь (Throttling)
+                    await message_queue.put((user_id, answer_text))
+                    print("✅ Ответ от ML добавлен в очередь!")
     except Exception as e:
         print(f"❌ Критическая ошибка Consumer: {e}")
     finally:
@@ -72,7 +96,7 @@ async def kafka_consumer_worker():
 async def echo_handler(message: Message):
     try:
         user_id = message.from_user.id if hasattr(message, 'from_user') else message.chat.id
-        text = message.text
+        text = getattr(message, 'text', '')
         
         print(f"📩 Получено сообщение от {user_id}: {text}")
         
@@ -91,30 +115,35 @@ async def echo_handler(message: Message):
         
         response_text = "Принял запрос! Передаю агентам ML для генерации ответа... 🧠"
         
-        # Используем рабочий метод бота с явными именованными аргументами
-        await bot.send_message(chat_id=int(user_id), text=response_text)
+        # Вместо прямой отправки кладем в очередь (Throttling)
+        await message_queue.put((user_id, response_text))
         
     except Exception as e:
         print(f"❌ Ошибка в echo_handler: {e}")
         traceback.print_exc()
 
 async def main():
-    print("Запуск бота и подключение к Kafka...")
+    print("Запуск бота и инициализация балансировщика...")
     await setup_kafka_producer()
     
-    # Запускаем Consumer как фоновую неблокирующую задачу
-    global consumer_task
+    global consumer_task, sender_task
+    
+    # Запускаем Consumer
     consumer_task = asyncio.create_task(kafka_consumer_worker())
+    
+    # Запускаем воркер отправки сообщений (Throttling)
+    sender_task = asyncio.create_task(message_sender_worker())
     
     try:
         await dp.run_polling()
     finally:
-        # Корректное завершение всех процессов при остановке скрипта
         if producer:
             await producer.stop()
             print("🛑 Kafka Producer остановлен")
         if consumer_task:
             consumer_task.cancel()
+        if sender_task:
+            sender_task.cancel()
 
 if __name__ == "__main__":
     asyncio.run(main())
