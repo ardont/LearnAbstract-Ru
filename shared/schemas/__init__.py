@@ -1,4 +1,3 @@
-# Re-export from shared.schemas.events for backwards compatibility
 from shared.schemas.events import (
     EventEnvelope,
     UserMessagePayload,
