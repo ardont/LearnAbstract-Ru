@@ -174,3 +174,46 @@ async def verify_quiz_answer(
             "correct_option_index": quiz.correct_option_index,
             "selected_option": selected_option
         }
+
+
+
+async def reset_user(max_user_id: str) -> Dict[str, Any]:
+    """Сбрасывает состояние FSM пользователя до стартового выбора согласия (152-ФЗ)."""
+    async with get_db_session() as session:
+        result = await session.execute(select(User).where(User.max_user_id == str(max_user_id)))
+        user = result.scalar_one_or_none()
+        if user:
+            user.state = "GUEST_CHOICE"
+            user.current_quiz_id = None
+            user.interest = None
+            user.is_guest = False
+            user.updated_at = utcnow()
+            await session.commit()
+        return {"status": "ok", "state": "GUEST_CHOICE"}
+
+
+async def get_user_profile(max_user_id: str) -> Dict[str, Any]:
+    """Возвращает статистику и профиль ученика."""
+    async with get_db_session() as session:
+        user_res = await session.execute(select(User).where(User.max_user_id == str(max_user_id)))
+        user = user_res.scalar_one_or_none()
+
+        quizzes_res = await session.execute(select(QuizSession).where(QuizSession.max_user_id == str(max_user_id)))
+        quizzes = quizzes_res.scalars().all()
+
+        total_q = len(quizzes)
+        correct_q = sum(1 for q in quizzes if q.is_correct is True)
+        pct = round((correct_q / total_q) * 100, 1) if total_q > 0 else 0.0
+
+        return {
+            "max_user_id": str(max_user_id),
+            "state": user.state if user else "GUEST_CHOICE",
+            "interest": user.interest if user else "Не выбран",
+            "grade": user.grade if user else 7,
+            "is_guest": user.is_guest if user else False,
+            "total_quizzes": total_q,
+            "correct_quizzes": correct_q,
+            "success_rate_pct": pct,
+            "points": correct_q * 10
+        }
+

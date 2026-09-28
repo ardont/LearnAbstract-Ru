@@ -31,8 +31,9 @@ from services.core_service.db.database import (
 from services.core_service.db.models import User, QuizSession, ExplanationLog
 from services.core_service.fsm import (
     get_or_create_user, set_consent, set_interest, set_user_state,
-    register_quiz, verify_quiz_answer
+    register_quiz, verify_quiz_answer, reset_user, get_user_profile
 )
+
 from services.core_service.rate_limiter import check_rate_limit, get_redis_client
 from services.core_service.metrics import (
     record_explanation, record_llm_error, get_metrics_summary,
@@ -447,7 +448,24 @@ async def process_interest(req: InterestRequest):
     }
 
 
+class UserActionRequest(BaseModel):
+    max_user_id: str
+
+
+@app.get("/api/user/profile/{user_id}", tags=["FSM & Routing"])
+async def api_get_profile(user_id: str):
+    profile = await get_user_profile(user_id)
+    return {"status": "ok", "profile": profile}
+
+
+@app.post("/api/user/reset", tags=["FSM & Routing"])
+async def api_reset_user(req: UserActionRequest):
+    res = await reset_user(req.max_user_id)
+    return res
+
+
 @app.post("/api/quiz/register", tags=["Quiz"])
+
 async def api_register_quiz(payload: Dict[str, Any]):
     await register_quiz(
         max_user_id=payload["max_user_id"],
