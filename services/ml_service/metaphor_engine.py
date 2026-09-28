@@ -268,3 +268,15 @@ def get_metaphor(topic: str, interest: str = "Футбол", grade: int = 7) -> 
         "level": 3,
         "quiz": general_quiz
     }
+
+
+async def generate_explanation(
+    topic: str,
+    interest: str = "Футбол",
+    grade: int = 7,
+    subject: Optional[str] = None,
+    user_query: Optional[str] = None
+) -> Dict[str, Any]:
+    """Унифицированный интерфейс вызова генерации аналогий (LLM + RAG + Guardrails)."""
+    from services.ml_service.llm_client import generate_explanation as llm_generate
+    return await llm_generate(topic, interest, grade, subject, user_query)

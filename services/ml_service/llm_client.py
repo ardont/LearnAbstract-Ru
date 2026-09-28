@@ -26,49 +26,59 @@ async def generate_explanation(
     user_query: Optional[str] = None
 ) -> Dict[str, Any]:
     """
-    Генерирует академическую аналогию с поддержкой RAG и OutputGuardrails:
-    1. Проверка входных Guardrails.
-    2. При DEMO_MODE=true — мгновенный возврат из 3-уровневого Fallback (180 мс, RAG не нужен).
-    3. При DEMO_MODE=false — извлечение контекста из учебника (RAG), вызов LLM и проверка через OutputGuardrails.
+    Академический генератор метафор с соблюдением 5 правил RAG-пайплайна:
+    1. Если DEMO_MODE=true -> сразу Fallback, RAG не трогать.
+    2. Если subject задан и RAG нашёл контекст -> передать в LLM.
+    3. Если RAG не нашёл -> LLM без контекста.
+    4. Если LLM упал -> Fallback.
+    5. Ответ прошёл OutputGuardrails -> вернуть. Не прошёл -> Fallback.
     """
     start_time = time.time()
     query_text = user_query or topic
 
-    # 1. Входные Guardrails
+    # 1. Входные Guardrails безопасности
     is_safe, safety_msg = check_guardrails(query_text)
     if not is_safe:
         return {
             "text": safety_msg,
             "source": "guardrails",
             "latency_ms": int((time.time() - start_time) * 1000),
-            "quiz": None
+            "quiz": None,
+            "rag_hits": 0,
+            "rag_chunks": []
         }
 
-    # 2. Извлечение фрагментов учебника (RAG)
-    context_chunks: List[str] = []
-    effective_subject = subject or "algebra"
-    if rag_engine.has_subject(effective_subject):
-        try:
-            context_chunks = rag_engine.retrieve(query_text, effective_subject, k=3)
-        except Exception as e:
-            logger.warning(f"Ошибка RAG при извлечении контекста: {e}. Продолжение без контекста.")
-
-    # 3. Пакет Demo-Resilience (DEMO_MODE=true) или отсутствие ключа
+    # Правило 1: Если DEMO_MODE=true или нет API ключа -> сразу Fallback, RAG не трогать!
     if DEMO_MODE or not LLM_API_KEY:
         if DEMO_MODE:
-            logger.info(f"[DEMO_MODE=true] Мгновенная выдача аналогии по теме «{topic}» через «{interest}» (RAG hits: {len(context_chunks)})")
+            logger.info(f"[DEMO_MODE=true] Мгновенный переход к Fallback по теме «{topic}» (RAG не опрашивается)")
         else:
-            logger.info(f"LLM_API_KEY не задан. Использование 3-Tier Fallback для «{topic}» (RAG hits: {len(context_chunks)})")
+            logger.info(f"LLM_API_KEY не задан. Автономный Fallback для темы «{topic}»")
 
-        await asyncio.sleep(0.18)  # 180 мс академический ответ
+        await asyncio.sleep(0.18)  # Имитация 180 мс ответа для плавности UX
         result = get_metaphor(topic, interest, grade)
         result["latency_ms"] = int((time.time() - start_time) * 1000)
-        result["rag_chunks"] = context_chunks
-        result["rag_hits"] = len(context_chunks)
-        result["rag_subject"] = effective_subject
+        result["rag_chunks"] = []
+        result["rag_hits"] = 0
+        result["rag_subject"] = subject or "none"
         return result
 
-    # 4. Реальный LLM с поддержкой RAG
+    # Правило 2 & 3: Извлечение фрагментов учебника (RAG)
+    context_chunks: List[str] = []
+    effective_subject = subject or "algebra"
+    if subject and rag_engine.has_subject(subject):
+        rag_t0 = time.time()
+        try:
+            context_chunks = rag_engine.retrieve(query_text, subject, k=3)
+            rag_ms = int((time.time() - rag_t0) * 1000)
+            logger.info(f"RAG retrieve: subject={subject}, k=3, hits={len(context_chunks)}, latency_ms={rag_ms}")
+        except Exception as e:
+            logger.warning(f"Ошибка RAG при извлечении контекста: {e}. Продолжение без контекста.")
+            context_chunks = []
+    elif not subject:
+        logger.info(f"Предмет не задан. Генерация LLM без RAG-контекста.")
+
+    # Формируем контекстный блок из учебников
     context_block = ""
     if context_chunks:
         context_block = (
@@ -86,6 +96,7 @@ async def generate_explanation(
 
     user_prompt = f"Вопрос ученика: {query_text}{context_block}"
 
+    # Правило 4: Вызов LLM с перехватом ошибок
     try:
         async with httpx.AsyncClient(timeout=LLM_TIMEOUT) as client:
             resp = await client.post(
@@ -108,10 +119,10 @@ async def generate_explanation(
                 data = resp.json()
                 raw_text = data["choices"][0]["message"]["content"]
 
-                # Шаг 4.3: Выходные Guardrails (OutputGuardrails)
+                # Правило 5: Выходные Guardrails (OutputGuardrails)
                 is_valid, reason = OutputGuardrails.validate(raw_text)
                 if not is_valid:
-                    logger.warning(f"Выходной фильтр заблокировал ответ модели ({reason}). Подмена на безопасный Fallback...")
+                    logger.warning(f"OutputGuardrails заблокировал ответ модели ({reason}). Подмена на безопасный Fallback...")
                 else:
                     clean_text = latex_to_unicode(raw_text)
                     meta_fallback = get_metaphor(topic, interest, grade)
