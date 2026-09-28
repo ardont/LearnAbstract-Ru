@@ -3,6 +3,7 @@ import os
 import json
 from dotenv import load_dotenv
 import traceback
+import httpx
 
 from maxbot.bot import Bot
 from maxbot.dispatcher import Dispatcher
@@ -23,36 +24,83 @@ dp = Dispatcher(bot)
 # Глобальные переменные для Kafka и очереди
 producer = None
 consumer_task = None
-message_queue = asyncio.Queue() # Очередь для исходящих сообщений
-sender_task = None # Фоновая задача для отправки
+message_queue = asyncio.Queue() 
+sender_task = None 
+
+# === ХАКАТОНСКАЯ МАГИЯ 3.0: ГЛОБАЛЬНЫЙ ПЕРЕХВАТЧИК СЕТИ ===
+original_request = httpx.AsyncClient.request
+
+async def patched_request(self, method, url, **kwargs):
+    response = await original_request(self, method, url, **kwargs)
+    try:
+        await response.aread()
+        text_data = response.text
+        
+        if "message_callback" in text_data or "consent_" in text_data:
+            data = json.loads(text_data)
+            
+            for u in data.get("updates", []):
+                if u.get("update_type") == "message_callback" or "callback" in u:
+                    cb_data = u.get("callback", {})
+                    payload = cb_data.get("payload")
+                    
+                    # 💡 ДОСТАЕМ ПРАВИЛЬНЫЙ ID ЧАТА ИЗ ЛОГОВ MAX
+                    chat_id = u.get("message", {}).get("recipient", {}).get("chat_id")
+                    
+                    # Фолбэк на user_id, если chat_id вдруг пустой
+                    target_id = chat_id or cb_data.get("user", {}).get("user_id")
+                    
+                    if target_id and payload:
+                        print(f"\n🔘 [СЕТЬ] Пойман клик! Chat ID: {target_id}, Выбор: {payload}")
+                        
+                        if payload == "consent_accept":
+                            response_text = "🎉 Спасибо! Полный профиль активирован. Твой прогресс будет сохраняться."
+                        elif payload == "consent_decline":
+                            response_text = "👻 Режим гостя активирован. Прогресс сохраняться не будет."
+                        else:
+                            response_text = f"Получен выбор: {payload}"
+                        
+                        event = EventEnvelope(
+                            event_type="bot.command.received",
+                            payload={
+                                "max_user_id": str(target_id),
+                                "text": payload,
+                                "command": payload
+                            }
+                        )
+                        if producer:
+                            await producer.send_and_wait(KAFKA_TOPIC, event.model_dump())
+                            print(f"📤 Событие выбора отправлено в Kafka")
+                        
+                        # Теперь мы отправляем сообщение в правильный chat_id!
+                        await message_queue.put({"chat_id": int(target_id), "text": response_text})
+    except Exception:
+        pass
+    return response
+# Внедряем патч в ядро библиотеки
+httpx.AsyncClient.request = patched_request
+# ==========================================================
 
 async def message_sender_worker():
-    """
-    Фоновый воркер (Throttling).
-    Соблюдает лимит MAX API: 30 запросов/сек.
-    """
     print("✅ Воркер отправки сообщений запущен (лимит 30 req/sec)")
     while True:
         try:
-            # Ждем появления задачи в очереди
-            chat_id, text = await message_queue.get()
-            
+            task = await message_queue.get()
             try:
-                # Фактическая отправка
-                await bot.send_message(chat_id=int(chat_id), text=text)
+                if isinstance(task, dict):
+                    await bot.send_message(**task)
+                else:
+                    chat_id, text = task
+                    await bot.send_message(chat_id=int(chat_id), text=text)
             except Exception as e:
-                print(f"❌ Ошибка при отправке сообщения пользователю {chat_id}: {e}")
+                print(f"❌ Ошибка при отправке сообщения: {e}")
             
-            # Строгий throttling: пауза 1/30 секунды (~0.033 сек) перед следующим сообщением
             await asyncio.sleep(1 / 30)
-            
-            # Отмечаем задачу как выполненную
             message_queue.task_done()
-            
         except asyncio.CancelledError:
             break
         except Exception as e:
-            print(f"❌ Критическая ошибка в воркере отправки: {e}")
+            print(f"❌ Критическая ошибка в воркере: {e}")
 
 async def setup_kafka_producer():
     global producer
@@ -72,7 +120,7 @@ async def kafka_consumer_worker():
         auto_offset_reset="latest"
     )
     await consumer.start()
-    print("✅ Kafka Consumer запущен, ожидаем ответы от ML-сервиса (explanation.ready)...")
+    print("✅ Kafka Consumer запущен, ожидаем ответы от ML-сервиса...")
     
     try:
         async for msg in consumer:
@@ -83,10 +131,8 @@ async def kafka_consumer_worker():
                 answer_text = payload.get("text", "Ошибка: Пустой ответ от ML")
                 
                 if user_id:
-                    print(f"📥 Пойман ответ для пользователя {user_id}. Кладу в очередь на отправку...")
-                    # Вместо прямой отправки кладем в очередь (Throttling)
-                    await message_queue.put((user_id, answer_text))
-                    print("✅ Ответ от ML добавлен в очередь!")
+                    print(f"📥 Пойман ответ для {user_id}. Кладу в очередь на отправку...")
+                    await message_queue.put({"chat_id": int(user_id), "text": answer_text})
     except Exception as e:
         print(f"❌ Критическая ошибка Consumer: {e}")
     finally:
@@ -114,9 +160,7 @@ async def echo_handler(message: Message):
             print(f"📤 Событие отправлено в Kafka: {event.event_id}")
         
         response_text = "Принял запрос! Передаю агентам ML для генерации ответа... 🧠"
-        
-        # Вместо прямой отправки кладем в очередь (Throttling)
-        await message_queue.put((user_id, response_text))
+        await message_queue.put({"chat_id": int(user_id), "text": response_text})
         
     except Exception as e:
         print(f"❌ Ошибка в echo_handler: {e}")
@@ -127,11 +171,7 @@ async def main():
     await setup_kafka_producer()
     
     global consumer_task, sender_task
-    
-    # Запускаем Consumer
     consumer_task = asyncio.create_task(kafka_consumer_worker())
-    
-    # Запускаем воркер отправки сообщений (Throttling)
     sender_task = asyncio.create_task(message_sender_worker())
     
     try:
