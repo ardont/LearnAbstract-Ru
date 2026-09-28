@@ -202,9 +202,26 @@ def get_metaphor(topic: str, interest: str = "Футбол", grade: int = 7) -> 
     - Уровень 3: Общенаучный адаптивный шаблон (Universal General).
     """
     clean_topic = topic.lower().strip()
-    interest_key = interest if interest in ["Футбол", "Видеоигры", "Музыка", "Космос", "Кино"] else "Футбол"
+    interest_key = interest if interest in ["Футбол", "Баскетбол", "Видеоигры", "Музыка", "Космос", "Кино"] else "Футбол"
 
-    # --- УРОВЕНЬ 1: Точное совпадение ---
+    # --- УРОВЕНЬ 1: Точное совпадение из каталога 100 метафор ---
+    try:
+        from services.ml_service.fallback_catalog import get_catalog_metaphor
+        cat_match = get_catalog_metaphor(clean_topic, interest_key)
+        if cat_match:
+            text = latex_to_unicode(cat_match["text"])
+            quiz = cat_match["quiz"].copy()
+            quiz["quiz_id"] = str(uuid.uuid4())
+            quiz["topic"] = cat_match["topic"]
+            return {
+                "text": text,
+                "source": "fallback_catalog",
+                "level": 1,
+                "quiz": quiz
+            }
+    except Exception:
+        pass
+
     for exact_key, interest_dict in EXACT_TOPICS.items():
         if exact_key in clean_topic:
             data = interest_dict.get(interest_key) or interest_dict.get("Футбол")
