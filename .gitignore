@@ -9,3 +9,4 @@ backups/
 run_all.log
 logs/
 demo_backup.mp4
+data/vector_db/non_existent_subject_xyz/
