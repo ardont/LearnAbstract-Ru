@@ -13,6 +13,8 @@ team_members:
     role: "Fullstack / Backend / MAX Bot Integration"
   - name: "Шибаев Сергей"
     role: "ML / RAG Architect / System Design"
+  - name: "Семенова Наталья"
+    role: "Methodology / Educational Experience / Pedagogy"
 
 base_url: "http://100.100.89.45:8000"
 local_base_url: "http://localhost:8000"
