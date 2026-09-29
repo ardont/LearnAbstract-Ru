@@ -23,11 +23,11 @@ async def seed_data():
 
     demo_users = [
         {"max_user_id": "1001", "interest": "Футбол", "grade": 7, "is_guest": False, "state": "IDLE"},
-        {"max_user_id": "1002", "interest": "Видеоигры", "grade": 8, "is_guest": False, "state": "IDLE"},
-        {"max_user_id": "1003", "interest": "Музыка", "grade": 9, "is_guest": False, "state": "IDLE"},
-        {"max_user_id": "1004", "interest": "Космос", "grade": 10, "is_guest": False, "state": "QUIZ_ACTIVE"},
+        {"max_user_id": "1002", "interest": "Видеоигры", "grade": 6, "is_guest": False, "state": "IDLE"},
+        {"max_user_id": "1003", "interest": "Музыка", "grade": 5, "is_guest": False, "state": "IDLE"},
+        {"max_user_id": "1004", "interest": "Космос", "grade": 6, "is_guest": False, "state": "QUIZ_ACTIVE"},
         {"max_user_id": "1005", "interest": "Кино", "grade": 7, "is_guest": True, "state": "IDLE"},
-        {"max_user_id": "1006", "interest": "Футбол", "grade": 8, "is_guest": False, "state": "IDLE"},
+        {"max_user_id": "1006", "interest": "Футбол", "grade": 5, "is_guest": False, "state": "IDLE"},
     ]
 
     demo_quizzes = [
@@ -83,15 +83,25 @@ async def seed_data():
     ]
 
     async with get_db_session() as session:
+        from sqlalchemy import select
         for u in demo_users:
-            user = User(
-                max_user_id=u["max_user_id"],
-                interest=u["interest"],
-                grade=u["grade"],
-                is_guest=u["is_guest"],
-                state=u["state"]
-            )
-            session.add(user)
+            stmt = select(User).where(User.max_user_id == u["max_user_id"])
+            res = await session.execute(stmt)
+            existing_user = res.scalar_one_or_none()
+            if existing_user:
+                existing_user.interest = u["interest"]
+                existing_user.grade = u["grade"]
+                existing_user.is_guest = u["is_guest"]
+                existing_user.state = u["state"]
+            else:
+                user = User(
+                    max_user_id=u["max_user_id"],
+                    interest=u["interest"],
+                    grade=u["grade"],
+                    is_guest=u["is_guest"],
+                    state=u["state"]
+                )
+                session.add(user)
 
         for q in demo_quizzes:
             quiz = QuizSession(

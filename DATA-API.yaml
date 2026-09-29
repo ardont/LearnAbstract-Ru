@@ -1,0 +1,130 @@
+# DATA-API 1.0 Specification
+# Хакатон MAX — Трек «Образовательные решения»
+# Команда: Firstapp
+# Решение: Абстрактный репетитор (Твой Путь)
+
+version: "1.0"
+solution_name: "Абстрактный репетитор"
+team_name: "Firstapp"
+team_members:
+  - name: "Акмаева Элиза"
+    role: "Product Owner / Data Analyst"
+  - name: "Хайрутдинов Рамис"
+    role: "Fullstack / Backend / MAX Bot Integration"
+  - name: "Шибаев Сергей"
+    role: "ML / RAG Architect / System Design"
+
+base_url: "http://100.100.89.45:8000"
+local_base_url: "http://localhost:8000"
+
+auth:
+  roles:
+    - role: "teacher"
+      type: "http_basic"
+      username: "teacher"
+      password: "change_me_in_production"
+      description: "Доступ к кабинету аналитики класса и выгрузке отчётов успеваемости"
+    - role: "student"
+      type: "anonymous_or_session"
+      description: "Доступ к интерактивному порталу обучения, RAG и квизам без обязательной авторизации"
+
+endpoints:
+  - name: "Health Check (Комплексный мониторинг узлов)"
+    method: "GET"
+    path: "/health/full"
+    role: "student"
+    expected_status: [200]
+    description: "Проверка состояния всех микросервисов: БД, Redis, Kafka, RAG, Fallback-каталог"
+    expected_response:
+      content_type: "application/json"
+      required_fields:
+        - "status"
+        - "database"
+        - "uptime_seconds"
+        - "rag_status"
+
+  - name: "Prometheus Metrics"
+    method: "GET"
+    path: "/metrics"
+    role: "student"
+    expected_status: [200]
+    description: "Метрики производительности, latency и счетчики запросов для мониторинга"
+    expected_response:
+      content_type: "text/plain"
+
+  - name: "Задать академический вопрос с метафорой (RAG + LLM)"
+    method: "POST"
+    path: "/api/student/ask"
+    role: "student"
+    headers:
+      Content-Type: "application/json"
+    body:
+      student_id: "demo_evaluator"
+      topic: "Объясни квадратные уравнения"
+      interest: "Футбол"
+      grade: 7
+    expected_status: [200]
+    description: "Синтез персонализированного объяснения с формулами в Unicode, RAG-цитатами и микро-квизом"
+    expected_response:
+      content_type: "application/json"
+      required_fields:
+        - "explanation"
+        - "quiz"
+        - "rag_chunks"
+
+  - name: "Профиль успеваемости ученика"
+    method: "GET"
+    path: "/api/user/profile/{user_id}"
+    role: "student"
+    path_params:
+      user_id: "1001"
+    expected_status: [200, 404]
+    description: "Получение статистики пройденных тестов, точности и набранных очков XP"
+    expected_response:
+      content_type: "application/json"
+      required_fields:
+        - "status"
+        - "profile"
+
+  - name: "Список учебников в RAG"
+    method: "GET"
+    path: "/api/student/textbooks"
+    role: "student"
+    expected_status: [200]
+    description: "Получение списка активных проиндексированных учебников в векторной базе"
+    expected_response:
+      content_type: "application/json"
+      required_fields:
+        - "status"
+        - "textbooks"
+
+  - name: "Сводка успеваемости и экспорт журнала учителя"
+    method: "GET"
+    path: "/api/teacher/export_csv"
+    role: "teacher"
+    headers:
+      Authorization: "Basic dGVhY2hlcjpjaGFuZ2VfbWVfaW5fcHJvZHVjdGlvbg=="
+    expected_status: [200]
+    description: "Выгрузка CSV-отчёта с результатами квизов учеников в кодировке UTF-8 с BOM"
+    expected_response:
+      content_type: "text/csv; charset=utf-8"
+
+  - name: "Кабинет Учителя (HTML Dashboard)"
+    method: "GET"
+    path: "/teacher"
+    role: "teacher"
+    headers:
+      Authorization: "Basic dGVhY2hlcjpjaGFuZ2VfbWVfaW5fcHJvZHVjdGlvbg=="
+    expected_status: [200]
+    description: "Интерактивный дашборд с векторным графиком активности, топом увлечений и тепловой картой"
+    expected_response:
+      content_type: "text/html; charset=utf-8"
+
+  - name: "Портал Ученика (HTML Web LMS)"
+    method: "GET"
+    path: "/student"
+    role: "student"
+    expected_status: [200]
+    description: "Адаптивный веб-интерфейс ученика с выбором увлечения и чатом"
+    expected_response:
+      content_type: "text/html; charset=utf-8"

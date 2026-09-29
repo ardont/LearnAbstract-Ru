@@ -1108,11 +1108,9 @@ def render_student_portal() -> str:
                     <div class="form-group">
                         <label class="form-label">Класс</label>
                         <select id="studentGrade" class="form-control">
+                            <option value="5">5 класс</option>
+                            <option value="6">6 класс</option>
                             <option value="7" selected>7 класс</option>
-                            <option value="8">8 класс</option>
-                            <option value="9">9 класс</option>
-                            <option value="10">10 класс</option>
-                            <option value="11">11 класс</option>
                         </select>
                     </div>
 

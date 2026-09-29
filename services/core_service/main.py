@@ -261,9 +261,12 @@ class MetricRecordRequest(BaseModel):
 
 
 class StudentAskRequest(BaseModel):
-    user_id: str = "student_demo"
-    topic: str
-    interest: str = "Футбол"
+    user_id: Any = "student_demo"
+    topic: Optional[str] = None
+    text: Optional[str] = None
+    interest: Optional[str] = None
+    hobby: Optional[str] = None
+    subject: Optional[str] = None
     grade: int = 7
 
 
@@ -521,16 +524,25 @@ async def student_portal():
 
 @app.post("/api/student/ask", tags=["Student Portal"])
 async def student_ask(req: StudentAskRequest):
-    is_limited, retry_after = await check_rate_limit(req.user_id)
+    user_id_str = str(req.user_id)
+    topic_str = req.topic or req.text or "Квадратные уравнения"
+    raw_interest = req.interest or req.hobby or "Футбол"
+    hobby_map = {
+        "football": "Футбол", "games": "Видеоигры", "gaming": "Видеоигры",
+        "music": "Музыка", "space": "Космос", "cinema": "Кино", "movies": "Кино"
+    }
+    interest_str = hobby_map.get(raw_interest.lower(), raw_interest)
+
+    is_limited, retry_after = await check_rate_limit(user_id_str)
     if is_limited:
         return {
             "status": "rate_limited",
             "message": f"⏳ Слишком много запросов! Подождите {retry_after} сек."
         }
 
-    user = await get_or_create_user(req.user_id)
-    await set_interest(req.user_id, req.interest)
-    subject = detect_subject(req.topic)
+    user = await get_or_create_user(user_id_str)
+    await set_interest(user_id_str, interest_str)
+    subject = req.subject or detect_subject(topic_str)
 
     start_t = asyncio.get_event_loop().time()
     data = None
@@ -539,11 +551,11 @@ async def student_ask(req: StudentAskRequest):
             resp = await client.post(
                 f"{ML_SERVICE_URL}/api/generate",
                 json={
-                    "topic": req.topic,
-                    "interest": req.interest,
+                    "topic": topic_str,
+                    "interest": interest_str,
                     "grade": req.grade,
                     "subject": subject,
-                    "user_query": req.topic
+                    "user_query": topic_str
                 }
             )
             if resp.status_code == 200:
@@ -553,7 +565,7 @@ async def student_ask(req: StudentAskRequest):
 
     if not data:
         from services.ml_service.metaphor_engine import generate_explanation as local_gen
-        data = await local_gen(topic=req.topic, interest=req.interest, grade=req.grade, subject=subject, user_query=req.topic)
+        data = await local_gen(topic=topic_str, interest=interest_str, grade=req.grade, subject=subject, user_query=topic_str)
 
     latency_ms = int((asyncio.get_event_loop().time() - start_t) * 1000)
     record_explanation(latency_ms, data.get("source", "fallback"))
@@ -564,8 +576,8 @@ async def student_ask(req: StudentAskRequest):
         import uuid
         quiz_id = str(uuid.uuid4())
         await register_quiz(
-            max_user_id=req.user_id,
-            topic=req.topic,
+            max_user_id=user_id_str,
+            topic=topic_str,
             question=quiz["question"],
             options=quiz["options"],
             correct_option_index=quiz.get("correct_option_index", 0),
@@ -575,9 +587,9 @@ async def student_ask(req: StudentAskRequest):
     try:
         async with get_db_session() as session:
             log_entry = ExplanationLog(
-                max_user_id=req.user_id,
-                topic=req.topic,
-                interest=req.interest,
+                max_user_id=user_id_str,
+                topic=topic_str,
+                interest=interest_str,
                 source=data.get("source", "fallback"),
                 latency_ms=latency_ms,
                 is_guest=user.get("is_guest", False)
@@ -586,13 +598,18 @@ async def student_ask(req: StudentAskRequest):
     except Exception as log_err:
         logger.warning(f"Ошибка сохранения лога: {log_err}")
 
+    exp_text = data.get("explanation") or data.get("text", "")
+    rag_chunks = data.get("rag_chunks", [])
+    rag_hits = data.get("rag_hits", len(rag_chunks))
     return {
         "status": "ok",
-        "explanation": data.get("explanation") or data.get("text", ""),
+        "answer": exp_text,
+        "explanation": exp_text,
+        "rag_used": bool(rag_hits > 0 or len(rag_chunks) > 0),
         "source": data.get("source", "fallback"),
         "latency_ms": latency_ms,
-        "rag_hits": data.get("rag_hits", 0),
-        "rag_chunks": data.get("rag_chunks", []),
+        "rag_hits": rag_hits,
+        "rag_chunks": rag_chunks,
         "rag_subject": data.get("rag_subject", subject),
         "quiz": {
             "quiz_id": quiz_id,

@@ -1,4 +1,6 @@
 import os
+from dotenv import load_dotenv
+load_dotenv()
 from contextlib import asynccontextmanager
 from typing import AsyncGenerator
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, async_sessionmaker
@@ -10,7 +12,7 @@ logger = setup_logger("core_service.database")
 
 POSTGRES_URL = os.getenv(
     "DATABASE_URL",
-    "postgresql+asyncpg://postgres:postgres@localhost:5432/education"
+    "postgresql+asyncpg://postgres:postgrespassword@127.0.0.1:5432/education"
 )
 SQLITE_URL = os.getenv("SQLITE_URL", "sqlite+aiosqlite:///./core.db")
 
