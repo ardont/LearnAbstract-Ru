@@ -36,7 +36,7 @@
  └─────────────┘            └─────────────┘
 ```
 
-> 🔍 **Исходный код и функции шлюза**: Построчный разбор модулей бота (`main.py`, `idempotency.py`, `watchdog.py`, `keyboards.py`) см. в [Справочнике кодовой базы: Bot Service](./codebase_reference.md#3-модуль-bot-service-servicesbot_service).
+> 🔍 **Исходный код и функции шлюза**: Построчный разбор модулей бота (`main.py`, `idempotency.py`, `watchdog.py`, `keyboards.py`) см. в [Справочнике кодовой базы: Bot Service](./codebase_reference.md#sec-4).
 
 ---
 

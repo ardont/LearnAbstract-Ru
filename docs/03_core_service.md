@@ -16,7 +16,7 @@
 5. **Кабинет Учителя (`/teacher`)**: Серверный рендеринг SVG-аналитики и экспорт отчетов в Excel-совместимый CSV с кодировкой UTF-8 BOM.
 6. **RAG Ingestion**: Прием и диспетчеризация загрузки PDF-учебников для индексации.
 
-> 🔍 **Исходный код и сигнатуры**: Детальный разбор каждой функции (`fsm.py`, `rate_limiter.py`, `database.py`, `models.py`, `main.py`) см. в [Справочнике кодовой базы: Core Service](./codebase_reference.md#1-модуль-core-service-servicescore_service).
+> 🔍 **Исходный код и сигнатуры**: Детальный разбор каждой функции (`fsm.py`, `rate_limiter.py`, `database.py`, `models.py`, `main.py`) см. в [Справочнике кодовой базы: Core Service](./codebase_reference.md#sec-2).
 
 ---
 

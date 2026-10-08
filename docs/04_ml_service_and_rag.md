@@ -53,7 +53,7 @@
                       [ Событие: explanation.ready ]
 ```
 
-> 🔍 **Исходный код и алгоритмы**: Построчный разбор всех модулей ML-сервиса (`rag_engine.py`, `metaphor_engine.py`, `llm_client.py`, `guardrails.py`, `dlq.py`) см. в [Справочнике кодовой базы: ML Service](./codebase_reference.md#2-модуль-ml-service-servicesml_service).
+> 🔍 **Исходный код и алгоритмы**: Построчный разбор всех модулей ML-сервиса (`rag_engine.py`, `metaphor_engine.py`, `llm_client.py`, `guardrails.py`, `dlq.py`) см. в [Справочнике кодовой базы: ML Service](./codebase_reference.md#sec-3).
 
 ---
 
