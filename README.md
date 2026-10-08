@@ -88,14 +88,14 @@ chmod +x scripts/start.sh scripts/stop.sh
 
 ## 📋 Порядок проверки и ключевые ссылки
 
-| Сервис / Страница | URL для проверки | Описание и учетные данные |
+| Сервис / Страница | Публичный HTTPS URL (Cloudflare) | Локальный URL / Описание |
 | :--- | :--- | :--- |
-| **Веб-портал Ученика** | `http://localhost:8000/student` | Выбор хобби (Футбол, Игры, Музыка...), чат с метафорами, формулы, цитаты RAG, микро-тест |
-| **Кабинет Учителя** | `http://localhost:8000/teacher` | **Логин**: `teacher` <br>**Пароль**: `change_me_in_production` <br>SVG-график, Quiz Heatmap, Top тем/хобби, экспорт CSV |
+| **Веб-портал Ученика** | [https://privacy-valves-twice-taste.trycloudflare.com/student](https://privacy-valves-twice-taste.trycloudflare.com/student) | `http://localhost:8000/student` — Чат с метафорами, формулы, цитаты RAG, микро-тест |
+| **Кабинет Учителя** | [https://privacy-valves-twice-taste.trycloudflare.com/teacher](https://privacy-valves-twice-taste.trycloudflare.com/teacher) | `http://localhost:8000/teacher` <br>**Логин**: `teacher` / **Пароль**: `hackathon2026` (или `change_me_in_production`) |
 | **Чат-бот в MAX** | [https://max.ru/t569_hakaton_max_bot](https://max.ru/t569_hakaton_max_bot) | Официальный бот в MAX (`@t569_hakaton_max_bot`): `/start`, 152-ФЗ, inline-квизы |
-| **Документация API (Swagger)** | `http://localhost:8000/docs` | Интерактивная документация всех эндпоинтов OpenAPI 3.1 |
-| **Мониторинг здоровья** | `http://localhost:8000/health/full` | Uptime, статус БД, Redis, Kafka, RAG, Fallback-каталога |
-| **Prometheus Метрики** | `http://localhost:8000/metrics` | Системные метрики для Prometheus / Grafana |
+| **Документация API (Swagger)** | [https://privacy-valves-twice-taste.trycloudflare.com/docs](https://privacy-valves-twice-taste.trycloudflare.com/docs) | Интерактивная документация всех эндпоинтов OpenAPI 3.1 |
+| **Мониторинг здоровья** | [https://privacy-valves-twice-taste.trycloudflare.com/health/full](https://privacy-valves-twice-taste.trycloudflare.com/health/full) | Uptime, статус БД, Redis, Kafka, RAG, Fallback-каталога |
+| **Prometheus Метрики** | [https://privacy-valves-twice-taste.trycloudflare.com/metrics](https://privacy-valves-twice-taste.trycloudflare.com/metrics) | Системные метрики для Prometheus / Grafana |
 
 ---
 
@@ -146,6 +146,8 @@ chmod +x scripts/start.sh scripts/stop.sh
 
 ## 📄 Дополнительные материалы и спецификации
 
+* [📚 **Инженерная книга проекта (docs/README.md)**](./docs/README.md) — Полное техническое руководство для изучения с нуля и защиты проекта (10 глав).
+* [🗺️ **Справочник кодовой базы (docs/codebase_reference.md)**](./docs/codebase_reference.md) — Анатомия каждого каталога, файла, класса и функции с сигнатурами и связями.
 * [DATA-API.yaml](./DATA-API.yaml) — Спецификация API для автоматизированной технической проверки.
 * [docs/rag.md](./docs/rag.md) — Подробное описание архитектуры RAG, формулобезопасного чанкинга и индексации.
 * [docs/demo_script.md](./docs/demo_script.md) — 3-минутный регламент живой защиты с таймингом.
